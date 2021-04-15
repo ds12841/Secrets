@@ -41,7 +41,7 @@ input::-webkit-inner-spin-button {
   text-align: left;
   color: #f2f2f2;
 }
-.boulder{
+.bolder{
   font-size: 2.2rem;
 }
 .sticky {
@@ -58,4 +58,12 @@ input::-webkit-inner-spin-button {
   font-weight:bolder;
   position: absolute;
   right: 250px; 
+}
+.trash{
+  position: absolute;
+  right: 750px;
+  color:#000;
+}
+.positionDel{
+  margin-left: 90% ;
 }

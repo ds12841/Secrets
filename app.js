@@ -9,9 +9,9 @@ const passportLocalMongoose = require('passport-local-mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const findOrCreate = require('mongoose-findorcreate')
-const d = new Date();
 const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const app = express();
+//const cryptoRandomString = require('crypto-random-string');
 
 app.set('view engine', 'ejs');
 
@@ -121,7 +121,7 @@ app.post('/login', (req, res) => {
                 });
         }        
         else
-            console.log(err)
+            res.status(400).send({message:"Either username or password is wrong"});
 
     });
 });
@@ -140,7 +140,7 @@ app.post('/register', (req, res) => {
         }
         else{
             console.log(err);
-            res.redirect("/register");
+            res.status(400).send(err);
         }
     });
 });
@@ -229,6 +229,7 @@ app.get("/forgot",(req,res)=>{
     res.render("forgot");
 });
 app.post("/submit",(req,res)=>{
+    const d = new Date();
     let hrs=0,str='AM';
     if(d.getHours()>12){
         hrs=d.getHours()-12;
@@ -240,16 +241,20 @@ app.post("/submit",(req,res)=>{
     else {
         hrs=d.getHours();
     }
-    const metaString=weekday[d.getDay()]+' '+hrs+':'+d.getMinutes()+' '+str+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+    let secs=d.getSeconds()<10?("0"+d.getSeconds().toString):d.getSeconds();
+    let mins=d.getMinutes()<10?("0"+d.getMinutes().toString):d.getMinutes();
+    const metaString=weekday[d.getDay()]+' '+hrs+':'+mins+':'+secs+' '+str+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
     const submittedSecret=req.body.secret;
     const title=req.body.title;
+    const id=req.user._id+weekday[d.getDay()]+hrs+':'+mins+':'+secs+str+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
     User.findById(req.user._id,(err,response)=>{
         if(!err){
             const blog={
                 bio:metaString,
                 user:req.body.status=="Anonymous"?req.body.status:response.username,
                 title:title,
-                text:submittedSecret
+                text:submittedSecret,
+                id:id
             }
             response.secret.push(blog);
             response.save((err)=>{
@@ -262,7 +267,25 @@ app.post("/submit",(req,res)=>{
         else console.log(err);
     });
 });
-
+app.post("/deleteblog",(req,res)=>{
+    let array=[];
+    for(let i=0;i<req.user.secret.length;i++)
+            if(req.user.secret[i].id!=req.body.id)
+                array.push(req.user.secret[i]);
+    User.findByIdAndUpdate(req.user._id,{secret:array},(err,response)=>{
+        if(err) res.status(400).send(err);
+        else res.redirect("/personal");
+    });    
+});
+app.get("/deleteacc",(req,res)=>{
+    if(req.isAuthenticated()){
+        let id=req.user._id;
+        req.logOut();
+        User.findByIdAndDelete({_id:id}).exec((err,docs)=>{
+            res.redirect("/");
+        });
+    }
+});
 app.listen(process.env.PORT, () => {
     console.log("Server is running on allocated port:"+process.env.PORT);
 });
