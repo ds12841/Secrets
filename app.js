@@ -11,7 +11,6 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const findOrCreate = require('mongoose-findorcreate')
 const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const app = express();
-//const cryptoRandomString = require('crypto-random-string');
 
 app.set('view engine', 'ejs');
 
@@ -31,7 +30,8 @@ app.use(passport.session());
 
 mongoose.connect("mongodb://localhost:27017/userDB", {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 });
 mongoose.set('useCreateIndex', true);
 const userSchema = new mongoose.Schema({
@@ -241,8 +241,8 @@ app.post("/submit",(req,res)=>{
     else {
         hrs=d.getHours();
     }
-    let secs=d.getSeconds()<10?("0"+d.getSeconds().toString):d.getSeconds();
-    let mins=d.getMinutes()<10?("0"+d.getMinutes().toString):d.getMinutes();
+    let secs=d.getSeconds()<10?("0"+d.getSeconds().toString()):d.getSeconds();
+    let mins=d.getMinutes()<10?("0"+d.getMinutes().toString()):d.getMinutes();
     const metaString=weekday[d.getDay()]+' '+hrs+':'+mins+':'+secs+' '+str+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
     const submittedSecret=req.body.secret;
     const title=req.body.title;
